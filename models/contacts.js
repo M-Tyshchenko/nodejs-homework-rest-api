@@ -1,14 +1,66 @@
-// const fs = require('fs/promises')
+const fs = require("fs/promises");
+const path = require("node:path");
+const crypto = require("node:crypto");
 
-const listContacts = async () => {}
+const contactsPath = path.join(__dirname, "contacts.json");
 
-const getContactById = async (contactId) => {}
+const listContacts = async () => {
+  const contacts = await fs.readFile(contactsPath, { encoding: "utf-8" });
+  return JSON.parse(contacts);
+};
 
-const removeContact = async (contactId) => {}
+const getContactById = async (contactId) => {
+  const contacts = await fs.readFile(contactsPath, { encoding: "utf-8" });
+  const contact = JSON.parse(contacts).find((contact) => contact.id === contactId);
+  
+  // if (contact === undefined) {
+  //   return null;
+  // }
 
-const addContact = async (body) => {}
+  return contact;
+};
 
-const updateContact = async (contactId, body) => {}
+const removeContact = async (contactId) => {
+  const contacts = await fs.readFile(contactsPath, { encoding: "utf-8" });
+  const index = contacts.findIndex((contact) => contact.id === contactId);
+  
+  if (index === -1) {
+    return null;
+  }
+
+  const removedContact = contacts.splice(index, 1);
+
+  await fs.writeFile(contactsPath, JSON.stringify(contacts, undefined, 2));
+
+  return removedContact;
+};
+
+const addContact = async (body) => {
+  // const { name, email, phone } = body;
+  const contacts = await fs.readFile(contactsPath, { encoding: "utf-8" });
+  const newContact = { id: crypto.randomUUID(), ...body };
+
+  contacts.push(newContact);
+
+  await fs.writeFile(contactsPath, JSON.stringify(contacts, undefined, 2));
+
+  return newContact;
+};
+
+const updateContact = async (contactId, body) => {
+  const contacts = await fs.readFile(contactsPath, { encoding: "utf-8" });
+  const index = contacts.findIndex((contact) => contact.id === contactId);
+  
+  if (index === -1) {
+    return null;
+  }
+
+  const updatedContact = contacts.splice(index, 1, {id: contactId, ...body});
+
+  await fs.writeFile(contactsPath, JSON.stringify(contacts, undefined, 2));
+
+  return updatedContact;
+};
 
 module.exports = {
   listContacts,
@@ -16,4 +68,4 @@ module.exports = {
   removeContact,
   addContact,
   updateContact,
-}
+};
