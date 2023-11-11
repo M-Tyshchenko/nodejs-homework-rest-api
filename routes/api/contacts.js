@@ -3,20 +3,32 @@ require("./db");
 
 const ContactController = require("../../controllers/contact");
 
+const isValidId = require("../../middlewares/isValidId");
+
 const jsonParser = express.json();
 
 const router = express.Router();
 
 router.get("/", ContactController.listContacts);
-  
-router.get("/:contactId", ContactController.getContactById);
+
+router.get("/:contactId", isValidId, ContactController.getContactById);
 
 router.post("/", jsonParser, ContactController.addContact);
 
-router.delete("/:contactId", ContactController.removeContact);
+router.delete("/:contactId", isValidId, ContactController.removeContact);
 
-router.put("/:contactId", jsonParser, ContactController.updateContact);
+router.put(
+  "/:contactId",
+  isValidId,
+  jsonParser,
+  ContactController.updateContact
+);
 
-router.patch("/:contactId/favorite", jsonParser, ContactController.updateStatusContact);
+router.patch(
+  "/:contactId/favorite",
+  isValidId,
+  jsonParser,
+  ContactController.updateStatusContact
+);
 
 module.exports = router;
