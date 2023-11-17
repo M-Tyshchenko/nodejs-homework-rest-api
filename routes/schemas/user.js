@@ -5,6 +5,11 @@ const authSchema = Joi.object({
     .email({ minDomainSegments: 2, tlds: { allow: ["com", "net"] } })
     .required(),
   password: Joi.string().required(),
+  subscription: Joi.string().valid("starter", "pro", "business"),
 });
 
-module.exports = { authSchema };
+const subscriptionSchema = Joi.object({
+  subscription: Joi.string().valid("starter", "pro", "business").required(),
+});
+
+module.exports = { authSchema, subscriptionSchema };
