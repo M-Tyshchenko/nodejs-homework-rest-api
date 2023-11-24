@@ -1,12 +1,18 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
+const gravatar = require("gravatar");
+const path = require("node:path");
+const fs = require("node:fs/promises");
+const Jimp = require("jimp");
 
 const User = require("../models/user");
 
 const { authSchema, subscriptionSchema } = require("../routes/schemas/user");
 
 const SECRET_KEY = process.env.SECRET_KEY;
+
+const avatarsDir = path.join(__dirname, "../public/avatars");
 
 async function register(req, res, next) {
   const body = authSchema.validate(req.body);
@@ -18,11 +24,16 @@ async function register(req, res, next) {
     });
   }
 
-  const { password } = req.body;
+  const { email, password } = req.body;
   const hashPassword = await bcrypt.hash(password, 10);
+  const avatarURL = gravatar.url(email);
 
   try {
-    const newUser = await User.create({ ...userBody, password: hashPassword });
+    const newUser = await User.create({
+      ...userBody,
+      password: hashPassword,
+      avatarURL,
+    });
     res.status(201).json({
       user: { email: newUser.email, subscription: newUser.subscription },
     });
@@ -116,10 +127,45 @@ async function updateStatusUser(req, res, next) {
   }
 }
 
+async function updateAvatar(req, res, next) {
+  const { _id } = req.user;
+  const { path: tmpUpload, originalname } = req.file;
+  
+  const extname = path.extname(originalname);
+  const basename = path.basename(originalname, extname);
+  const filename = `${basename}-${_id}${extname}`;
+
+  await Jimp.read(tmpUpload)
+    .then((avatar) => {
+      return avatar
+        .resize(250, 250) // resize
+        .write(tmpUpload); // save
+    })
+    .catch((err) => {
+      next(err);
+    });
+
+  const resultUpload = path.join(avatarsDir, filename);
+  const avatarURL = path.join("avatars", filename);
+
+  try {
+    await fs.rename(tmpUpload, resultUpload);
+
+    await User.findByIdAndUpdate(_id, { avatarURL }, {new: true}).exec();
+
+    res.json({
+      avatarURL,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
 module.exports = {
   register,
   login,
   current,
   logout,
   updateStatusUser,
+  updateAvatar,
 };
