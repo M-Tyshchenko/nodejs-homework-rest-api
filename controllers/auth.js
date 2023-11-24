@@ -105,7 +105,7 @@ async function logout(req, res) {
 async function updateStatusUser(req, res, next) {
   const body = subscriptionSchema.validate(req.body);
   const userBody = body.value;
-  console.log(body);
+  
   if (typeof body.error !== "undefined") {
     return res.status(400).json({ message: body.error.message });
   }
@@ -122,15 +122,19 @@ async function updateStatusUser(req, res, next) {
       subscription: switchSubscription.subscription,
     });
   } catch (err) {
-    console.log({ err });
     next(err);
   }
 }
 
 async function updateAvatar(req, res, next) {
   const { _id } = req.user;
-  const { path: tmpUpload, originalname } = req.file;
   
+  if (req.file === undefined) {
+    return res.status(400).json({ message: "Image is undefined" });
+  }
+  
+  const { path: tmpUpload, originalname } = req.file;
+
   const extname = path.extname(originalname);
   const basename = path.basename(originalname, extname);
   const filename = `${basename}-${_id}${extname}`;
@@ -151,7 +155,7 @@ async function updateAvatar(req, res, next) {
   try {
     await fs.rename(tmpUpload, resultUpload);
 
-    await User.findByIdAndUpdate(_id, { avatarURL }, {new: true}).exec();
+    await User.findByIdAndUpdate(_id, { avatarURL }, { new: true }).exec();
 
     res.json({
       avatarURL,
