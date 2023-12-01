@@ -16,6 +16,10 @@ router.get("/current", authenticate, UserController.current);
 
 router.post("/logout", authenticate, UserController.logout);
 
+router.get("/verify/:verificationToken", UserController.verify);
+
+router.post("/verify", jsonParser, UserController.resendVerify);
+
 router.patch("/", authenticate, jsonParser, UserController.updateStatusUser);
 
 router.patch("/avatars", authenticate, upload.single("avatar"), UserController.updateAvatar);
