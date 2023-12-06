@@ -14,6 +14,7 @@ const { authSchema, subscriptionSchema, verifySchema } = require("../routes/sche
 
 const SECRET_KEY = process.env.SECRET_KEY;
 const FROM_EMAIL = process.env.YOUR_EMAIL;
+const BASE_URL = process.env.BASE_URL;
 
 const defaultClient = ElasticEmail.ApiClient.instance;
 const { apikey } = defaultClient.authentications;
@@ -46,7 +47,7 @@ async function register(req, res, next) {
       Body: [
         ElasticEmail.BodyPart.constructFromObject({
           ContentType: "HTML",
-          Content: `To confirm your registration, follow the <a href="http://localhost:3000/users/verify/${verificationToken}">link</a>`,
+          Content: `To confirm your registration, follow the <a href="${BASE_URL}/users/verify/${verificationToken}">link</a>`,
         }),
       ],
       Subject: "Welcome to your contact book",
